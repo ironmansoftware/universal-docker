@@ -1,0 +1,17 @@
+name: Linux - 4.x
+on: 
+    workflow_dispatch:
+
+jobs:
+    build:
+      name: Build
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v2
+          with:
+            ref: "main"
+        - name: Build and Push Docker Image
+          run: .\linux.ps1 -Preview
+          env:
+            dockerpassword: ${{ secrets.DOCKER_PASSWORD }}
+          shell: pwsh

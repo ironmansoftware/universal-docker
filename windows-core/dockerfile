@@ -1,0 +1,31 @@
+# escape=`
+ARG fromTag=lts-windowsservercore-ltsc2022
+ARG WindowsServerRepo=mcr.microsoft.com/powershell
+
+# As this is a multi-stage build, this stage will eventually be thrown away
+FROM ${WindowsServerRepo}:${fromTag} AS installer-env
+
+ARG VERSION=1.3.1
+ARG PACKAGE_URL=https://imsreleases.blob.core.windows.net/universal/production/${VERSION}/Universal.win7-x64.${VERSION}.zip
+
+SHELL ["C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "-command"]
+
+RUN $url = $env:PACKAGE_URL; `
+    Write-host "downloading: $url"; `
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12; `
+    Invoke-WebRequest -Uri $url -outfile /universal.zip -verbose ; `
+    Expand-Archive universal.zip -DestinationPath .\Universal;
+
+FROM ${WindowsServerRepo}:${fromTag}
+
+# Copy PowerShell Core from the installer container
+ENV ProgramData="C:\ProgramData" 
+
+# Copy PowerShell Core from the installer container
+COPY --from=installer-env ["\\Universal\\", "$ProgramData\\Universal"]
+
+# Set the path
+RUN setx /M PATH "%ProgramData%\Universal;%PATH%;"
+
+EXPOSE 5000
+ENTRYPOINT ["C:/ProgramData/Universal/Universal.Server.exe"]

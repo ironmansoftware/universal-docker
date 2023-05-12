@@ -1,0 +1,21 @@
+name: Windows 4.x
+on: 
+    workflow_dispatch:
+
+jobs:
+    build:
+      name: Build
+      runs-on: windows-latest
+      steps:
+        - uses: actions/checkout@v2
+          with:
+            ref: "main"
+        - name: Build Docker Image
+          run: .\src\docker\windows-core\build.ps1
+          shell: pwsh
+        - name: Push Docker Image
+          run: .\src\docker\windows-core\push.ps1 -Preview
+          env:
+            dockerpassword: ${{ secrets.DOCKER_PASSWORD }}
+            version: 4.0.0-beta3
+          shell: pwsh

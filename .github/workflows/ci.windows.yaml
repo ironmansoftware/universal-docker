@@ -1,0 +1,14 @@
+name: CI - Windows
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+    build:
+      name: Build
+      runs-on: windows-latest
+      steps:
+        - uses: actions/checkout@v2
+          with:
+            ref: "main"
+        - name: Build Docker Image
+          run: .\windows.ps1
+          shell: pwsh
